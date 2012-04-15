@@ -107,30 +107,31 @@ def loadMergableRelation(dir_name, file_name):
             mergable_relation[c_id+'_'+f_id]=float(delay)
             c_id=int(c_id)
             f_id=int(f_id)
-            if f_id not in father_trips:
+            if f_id not in father_trips.keys():
                 father_trips[f_id] = {c_id:trip_meta[c_id]['td'], 'benefit':trip_meta[c_id]['td'], 'children':[c_id]}
             else:
                 father_trips[f_id][c_id] = trip_meta[c_id]['td']
                 father_trips[f_id]['benefit'] += trip_meta[c_id]['td']
+                father_trips[f_id]['children'].append(c_id)
+                '''
                 idx = 0
                 while idx < len(father_trips[f_id]['children']) and trip_meta[c_id]['td'] < trip_meta[father_trips[f_id]['children'][idx]]['td']:
                     idx += 1
-                    father_trips[f_id]['children'].insert(idx, c_id) 
-            if c_id not in child_trips:
+                    father_trips[f_id]['children'].insert(idx, c_id)
+                ''' 
+            if c_id not in child_trips.keys():
                 child_trips[c_id] = [f_id]
             else:
                 child_trips[c_id].append(f_id)
     
     #sort children list in descending order of their distance 
-    '''
     for f_id in father_trips.keys():
         children=[]
         for c_id in father_trips[f_id]['children']:
-            children.append(trip_meta[c_id]['td'], c_id)
+            children.append((trip_meta[c_id]['td'], c_id))
         children=sorted(children, reverse=True)
         father_trips[f_id]['children']=map(itemgetter(1), children)
-    '''
-                    
+                        
     print "line=%d"%i
     return father_trips, child_trips, mergable_relation, trip_meta
 
@@ -183,7 +184,6 @@ def greedyMaxFather(father_trips, child_trips, option, capacity):
             for t_id in li:
                 if t_id in child_trips: #update outgoing edges of selected nodes
                     for fid in child_trips[t_id]:
-                        #print fid, id
                         father_trips[fid]['benefit'] -= father_trips[fid][t_id]
                         father_trips[fid]['children'].remove(t_id)
                         del father_trips[fid][t_id]
