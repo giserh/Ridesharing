@@ -73,7 +73,7 @@ def profiel_ridesharing_plan(rp, mergeable_relation, trip_meta):
     
     benefit=0.0
     max_merge = 0
-    sum_merge = 0.0
+    sum_merge = 0
     max_delay=0.0
     sum_delay=0.0
     no_of_merged_trips=0
@@ -87,7 +87,7 @@ def profiel_ridesharing_plan(rp, mergeable_relation, trip_meta):
             delay=mergeable_relation[str(t_id)+'_'+str(sink_id)]
             sum_delay+=delay
             max_delay=max(max_delay, delay)
-    avg_merge=sum_merge/len(rp)
+    avg_merge=float(sum_merge)/len(rp)
     avg_delay=sum_delay/no_of_merged_trips
     return benefit, max_merge, avg_merge, no_of_merged_trips, max_delay, avg_delay
                             

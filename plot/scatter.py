@@ -29,39 +29,57 @@ def draw_trips(trips):
 
 
 def draw_result(res, heuristics, capacity, criteria, criteria_unit):
-    capacity=[1,2,3,'INF']
-    
     COLORS=['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
     MARKERS=['o','s','^','p', 'D', '+', 'h', 'H']
     
     x_tick_names=[str(capa) for capa in capacity[:-1]]+['Unbounded']
     x_axis=range(1,len(x_tick_names)+1)
-    
+    for heur in heuristics:
+        res['benefit'][heur]=[int(v/1000) for v in res['benefit'][heur]]
     
     for idx in range(len(criteria)): 
         fig = plt.figure()
         ax = fig.add_subplot(111)
+        ax.grid(True)
         
         ax.set_title(criteria[idx])
         ax.set_xlabel('Ridesharing capacity')
-        ax.set_ylabel(criteria[idx])
+        y_label=criteria[idx]
+        if criteria_unit[idx]:
+            y_label+='('+criteria_unit[idx]+')'
+        ax.set_ylabel(y_label)
+        
         max_value=max([max(res[criteria[idx]][heur]) for heur in heuristics])
         min_value=min([min(res[criteria[idx]][heur]) for heur in heuristics])
-        offset=int((max_value-min_value)*0.05)+1
-        ax.axis([0,len(x_axis)+1,min_value-offset,max_value+offset])
+        if criteria[idx]=='avg_merge':
+            upper_offset=lower_offset=0.02
+        elif criteria[idx]=='benefit':
+            upper_offset=lower_offset=int((max_value-min_value)*0.05)+1
+        else:
+            upper_offset=lower_offset=int((max_value-min_value)*0.05)+1
+            if criteria[idx]=='avg_delay':
+                upper_offset+=100
+            
+        ax.axis([0,len(x_axis)+1,max(min_value-lower_offset,0),max_value+upper_offset])
         
         ###################################
         #pylab.xticks(x_axis, x_tick_names)
         ###################################
         ax.set_xticks(x_axis)  
         ax.set_xticklabels(x_tick_names)
-        formatter = EngFormatter(unit=criteria_unit[idx], places=1)
-        ax.yaxis.set_major_formatter(formatter)
+        #formatter = EngFormatter(unit=criteria_unit[idx], places=1)
+        #ax.yaxis.set_major_formatter(formatter)
 
         for j in range(len(heuristics)):
             ax.plot(x_axis, res[criteria[idx]][heuristics[j]], color=COLORS[j],  marker=MARKERS[j], markersize=10, markeredgecolor=COLORS[j], linestyle='-', linewidth=2, label=heuristics[j])
-        ax.legend(heuristics, loc='lower right',numpoints=1, markerscale=1.3)
+        
+        if  criteria[idx]=='avg_delay' or criteria[idx]=='avg_merge':
+            position='upper left'
+        else:
+            position='lower right'
+        ax.legend(heuristics, loc=position,numpoints=1, markerscale=1.3)
         plt.savefig(SAVEDIR+criteria[idx])
+    #plt.show()
 
 
     

@@ -3,8 +3,9 @@ Created on Feb 20, 2012
 
 @author: Sol
 '''
-import heapq, copy, random
+import heapq, copy, random, time
 import util.Geo as geo
+import io.ReadTrips as read
 import main.Analyze as ana
 import plot.scatter as scatter
 from operator import itemgetter
@@ -97,32 +98,54 @@ def loadMergableRelation(dir_name, file_name):
         
     father_trips = {}
     child_trips = {}
-    mergable_relation = {}
+    mergeable_relation = {}
     
     i=0
     with open(files[1]) as fileobject:
         for line in fileobject:
             i+=1
             c_id, f_id, delay = line[:-1].split(',')
-            mergable_relation[c_id+'_'+f_id]=float(delay)
+            pair_id=c_id+'_'+f_id
             c_id=int(c_id)
             f_id=int(f_id)
-            if f_id not in father_trips.keys():
-                father_trips[f_id] = {c_id:trip_meta[c_id]['td'], 'benefit':trip_meta[c_id]['td'], 'children':[c_id]}
-            else:
-                father_trips[f_id][c_id] = trip_meta[c_id]['td']
-                father_trips[f_id]['benefit'] += trip_meta[c_id]['td']
-                father_trips[f_id]['children'].append(c_id)
-                '''
-                idx = 0
-                while idx < len(father_trips[f_id]['children']) and trip_meta[c_id]['td'] < trip_meta[father_trips[f_id]['children'][idx]]['td']:
-                    idx += 1
-                    father_trips[f_id]['children'].insert(idx, c_id)
-                ''' 
+            delay=float(delay)
+            
+            mergeable_relation[pair_id]=delay
+
             if c_id not in child_trips.keys():
                 child_trips[c_id] = [f_id]
-            else:
-                child_trips[c_id].append(f_id)
+            else:#
+                if not (file_name=='od_merge' and len(child_trips[c_id])>10):
+                    child_trips[c_id].append(f_id)
+                #only save 10 top fathers with minimum delay  
+                elif delay<mergeable_relation[str(c_id)+'_'+str(child_trips[c_id][-1])]:
+                    
+                    purge_f_id=child_trips[c_id][-1]
+                    del mergeable_relation[str(c_id)+'_'+str(purge_f_id)]
+                    #update father_trips accordingly
+                    father_trips[purge_f_id]['children'].remove(c_id)
+                    del father_trips[purge_f_id][c_id]
+                    father_trips[purge_f_id]['benefit']-=trip_meta[c_id]['td']
+                    if not father_trips[purge_f_id]['children']:
+                        del father_trips[purge_f_id]
+
+                    child_trips[c_id][-1]=f_id             
+                    # re-sort fathers based on delay
+                    fathers=[]
+                    for f in child_trips[c_id]:
+                        fathers.append((mergeable_relation[str(c_id)+'_'+str(f)],f))
+                    fathers=sorted(fathers)
+                    child_trips[c_id]=map(itemgetter(1), fathers)
+                else:
+                    del mergeable_relation[pair_id]
+            if pair_id in mergeable_relation.keys():
+                if f_id not in father_trips.keys():
+                    father_trips[f_id] = {c_id:trip_meta[c_id]['td'], 'benefit':trip_meta[c_id]['td'], 'children':[c_id]}
+                else:
+                    father_trips[f_id][c_id] = trip_meta[c_id]['td']
+                    father_trips[f_id]['benefit'] += trip_meta[c_id]['td']
+                    father_trips[f_id]['children'].append(c_id)
+
     
     #sort children list in descending order of their distance 
     for f_id in father_trips.keys():
@@ -133,7 +156,7 @@ def loadMergableRelation(dir_name, file_name):
         father_trips[f_id]['children']=map(itemgetter(1), children)
                         
     print "line=%d"%i
-    return father_trips, child_trips, mergable_relation, trip_meta
+    return father_trips, child_trips, mergeable_relation, trip_meta
 
 def greedyMaxFather(father_trips, child_trips, option, capacity):
     '''    e.g. given (1,3), (2,3)
@@ -199,7 +222,7 @@ def greedyMaxFather(father_trips, child_trips, option, capacity):
 
 def runHeuristics(father_trips, child_trips, mergeable_relation, trip_meta):
     heuristics = ['benefit', 'avg_benefit', 'children_no', 'random']#, 'edge_benefit']
-    capacity = [1, 2, 3, INF]
+    capacity = [1, 2, 3, 4, INF]
     criteria=['benefit','no_of_merged_trips','max_merge', 'avg_merge', 'max_delay','avg_delay']
     criteria_unit=['km','','','','sec','sec']
 
@@ -222,23 +245,33 @@ def runHeuristics(father_trips, child_trips, mergeable_relation, trip_meta):
             res['max_delay'][heur].append(max_delay)
             res['avg_delay'][heur].append(avg_delay)
 
-    #scatter.draw_result(res, heuristics, capacity, criteria, criteria_unit)
+    scatter.draw_result(res, heuristics, capacity, criteria, criteria_unit)
     
+    '''
     """format results"""        
     print '%-s%s' % ('\t', '\t\t'.join(criteria))
     for heur in heuristics:
         print '%-s\t' % heur, '\t\t'.join([','.join([ str(item) for item in res[crit][heur] ]) for crit in criteria])
     print
-  
+    '''
 def ridesharing(dir_name):
+    start=time.time()
     #read.processRawData(dir_name)
+    elapsed = int((time.time() - start)/60)
+    print "%d minutes elapsed\n"%elapsed    
     
+    start = time.time()
     #produceMergableRelation(dir_name)
+    elapsed = int((time.time() - start)/60)
+    print "%d minutes elapsed\n"%elapsed
     #'''
     file_prefixes=['','admissible_']
     for prefix in file_prefixes[1:]:
+        start = time.time()
         father_trips, child_trips, mergeable_relation , trip_meta=loadMergableRelation(dir_name, prefix+'od_merge')
-        #'''
+        elapsed = int((time.time() - start)/60)
+        print "%d minutes elapsed\n"%elapsed
+        #"""
         ana.upper_bound(trip_meta, child_trips)
         ana.avg_tt_td(trip_meta)
         if prefix=='':
@@ -246,7 +279,7 @@ def ridesharing(dir_name):
             print ana.profiel_ridesharing_plan(rp, mergeable_relation, trip_meta)         
         else:
             runHeuristics(father_trips, child_trips, mergeable_relation, trip_meta)
-        #'''
+        #"""
         print
     #'''
 if __name__ == "__main__":
