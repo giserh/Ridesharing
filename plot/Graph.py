@@ -13,3 +13,5 @@ def drawRelation(relation):
     G.add_edges_from(relation)
     nx.draw(G)
     plt.show()
+    
+#drawRelation([(1,3), (2,4), (4,5)])

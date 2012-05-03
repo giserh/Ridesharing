@@ -4,20 +4,43 @@ Created on Feb 20, 2012
 @author: Sol
 '''
 import time, glob, csv, os, random
-import util.Geo as geo
+import os.path as path
+import util.Geo as geo, main.Constants as Constants
 
 
-BASE_DIR = 'C:/Program Files/Weka-3-6/data/Taxi_Trajectory/'
-RAW_DIR = BASE_DIR + 'raw/'
-PROCESSED_DIR = BASE_DIR + 'processed/'
+def is_valid_trip(trip_file_name, debug=False):
+    """this function determines whether an extracted trip is valid based on some heuristics"""
+    #filename=Constants.PROCESSED_DIR+dirname+'/trip_trajectory/'+str(trip_id)+'.txt'
+    #gps_point=[]
+    trip_file=open(trip_file_name, 'r')
+    lines=trip_file.readlines()
+    count=0
+    for idx in range(len(lines)):
+        _, lon, lat, _, _, time=lines[idx].split(',')
+        lon=float(lon)
+        lat=float(lat)
+        time=int(time)
+        if count==5: #if the max distance from the start point does not increase in 5 consecutive steps, then disregard the trip 
+            return False 
+        if idx==0:
+            start_time=time
+            start_point=(lat, lon)
+            max_dist=0
+            #gps_point.append((0, lat, lon))
+        else:
+            dist=geo.distBetween(lat, lon, start_point[0], start_point[1])
+            if debug:
+                print dist
+            if dist<max_dist:
+                count+=1
+            else:
+                max_dist=dist
+            #gps_point.append((dist, lat, lon))
+    if time-start_time<30:  #if travel time < half minute, disregard the trip
+        return False
+    return True
 
-def set_directory(base_dir):
-    global BASE_DIR, RAW_DIR, PROCESSED_DIR
-    BASE_DIR=base_dir
-    RAW_DIR = BASE_DIR + 'raw/'
-    PROCESSED_DIR = BASE_DIR + 'processed/'
-
-def readTaxiFile(file_name, trip_dir, trip_meta):
+def extract_trip_from_one_file(file_name, trip_dir, trip_meta):
     f = open(file_name)
     # Using a DictReader instead
     r = csv.DictReader(f, ['taxi_id', 'timestamp', 'lng', 'lat', 'unknown1', 'unknown2', 'occupied'])
@@ -34,7 +57,8 @@ def readTaxiFile(file_name, trip_dir, trip_meta):
     travelDistance = 0.0
     
     trip_meta_file = open(trip_meta, 'a+')
-    trip_id = readTaxiFile.count
+    trip_id = extract_trip_from_one_file.count
+
     for line in r:
         if "{occupied}".format(**line) == '1':
             day_of_week = int(time.strftime("%w", time.strptime("{timestamp}".format(**line), "%Y-%m-%d %H:%M:%S")))
@@ -62,10 +86,9 @@ def readTaxiFile(file_name, trip_dir, trip_meta):
                         print >> trip_file, ','.join([str(field) for field in line])
                     trip_file.close()
                     #update trip meta
-                    trip_meta_file.write(','.join([str(trip_id), str(trip[0][0]), str(lat[0]), str(lng[0]), str(timestamp[0]), str(lat[-1]), str(lng[-1]), str(timestamp[-1]), str(travelTime), str(travelDistance)]))
-                    trip_meta_file.write('\n')
+                    trip_meta_file.write(','.join([str(trip_id), str(trip[0][0]), str(lat[0]), str(lng[0]), str(timestamp[0]), str(lat[-1]), str(lng[-1]), str(timestamp[-1]), str(travelTime), str(travelDistance)])+'\n')
                     trip_id += 1
-                
+                    
                 max_lat = max(max(lat), max_lat)
                 min_lat = min(min(lat), min_lat)
                 max_lng = max(max(lng), max_lng)
@@ -76,22 +99,46 @@ def readTaxiFile(file_name, trip_dir, trip_meta):
                 trip = []
                 travelDistance = 0.0
     trip_meta_file.close()
-    readTaxiFile.count = trip_id
+    extract_trip_from_one_file.count = trip_id
     return trips, max_lat, min_lat, max_lng, min_lng
 
-def processRawData(dir_name):
-    '''load raw data, analyze trips and write them to processed data'''
-    raw = RAW_DIR + dir_name
-    trip_dir = PROCESSED_DIR + dir_name + '/trip_trajectory/'
+def generate_trip_meta(all_trip_meta_file_name, trip_meta_file_name, non_valid_trip_file_name, trip_dir):
+    """generate the trip meta file"""
+    start=time.time()
+    
+    trip_meta_file=open(trip_meta_file_name, 'w+')
+    non_valid_trip_file=open(non_valid_trip_file_name, 'w+')
+    
+    with open(all_trip_meta_file_name) as all_trip_meta_file:
+        for line in all_trip_meta_file:
+            trip_id=line.split(',')[0]
+            trip_file_name=trip_dir+'/'+trip_id+'.txt'
+            if is_valid_trip(trip_file_name):
+                trip_meta_file.write(line)
+            else:
+                non_valid_trip_file.write(trip_id+'\n')
+    trip_meta_file.close()
+    non_valid_trip_file.close()
+    
+    elapsed = int((time.time() - start)/60)
+    print "%d minutes elapsed\n"%elapsed 
+
+
+def build_file_names(dir_name):
+    raw = Constants.RAW_DIR + dir_name
+    trip_dir = Constants.PROCESSED_DIR + dir_name + '/trip_trajectory/'
     if not os.path.exists(trip_dir):
         os.makedirs(trip_dir)
     
-    names = ['trip_meta', 'od_merge_trips']
+    names = ['all_trip_meta','trip_meta','non_valid_trip']
     files = []
     for name in names:
-        files.append(PROCESSED_DIR + dir_name + '/' + name + '.txt')
-        my_file = open(files[-1], 'w+')
-        my_file.close()    
+        files.append(Constants.PROCESSED_DIR + dir_name + '/' + name + '.txt')
+    return trip_dir, files
+
+def processRawData(dir_name, trip_dir, all_trip_meta_file_name):
+    """load raw data, analyze trips and write them to processed data"""
+    start=time.time()
 
     trips = []
     _max_lat = 0.0
@@ -99,21 +146,29 @@ def processRawData(dir_name):
     _max_lng = 0.0
     _min_lng = 180
 
-    readTaxiFile.count = 1
-    for f in glob.glob(raw + '/*'):
-        ts, max_lat, min_lat, max_lng, min_lng = readTaxiFile(f, trip_dir, files[0])
+    extract_trip_from_one_file.count = 1
+    non_valid_trip_list=[]
+    
+    for f in glob.glob(Constants.RAW_DIR + '/*'):
+        ts, max_lat, min_lat, max_lng, min_lng, non_valid = extract_trip_from_one_file(f, trip_dir, all_trip_meta_file_name)
         _max_lat = max(max_lat, _max_lat)
         _min_lat = min(min_lat, _min_lat)
         _max_lng = max(max_lng, _max_lng)
         _min_lng = min(min_lng, _min_lng)
         trips.extend(ts)
-        
-    #trip_meta = loadTripMetaFile(files[0])
-    #updateODMergeTrips(trip_meta, files[1])
+        non_valid_trip_list.append(non_valid)
+    
+    elapsed = int((time.time() - start)/60)
+    print "%d minutes elapsed\n"%elapsed 
     return trips, _max_lat, _min_lat, _max_lng, _min_lng
 
+#trip_dir, files=build_file_names('Taxi_Shanghai')
+#generate_trip_meta(files[0], files[1], files[2], trip_dir)
+#is_valid_trip("C:/Program Files/Weka-3-6/data/Taxi_Trajectory/processed/Taxi_Shanghai/trip_trajectory/499.txt", True)
+
+'''
 def readFromSynthesizedData(dir_name):
-    '''create N trips (length range from (2km,8km)) with 3N pair OD-Merged trips '''
+    """create N trips (length range from (2km,8km)) with 3N pair OD-Merged trips"""
     N = 1000
     trip_meta = ['none']
     for _ in range(1, N + 1):
@@ -122,7 +177,7 @@ def readFromSynthesizedData(dir_name):
     names = ['trip_meta', 'od_merge_trips']
     files = []
     for name in names:
-        files.append(PROCESSED_DIR + dir_name + '/' + name + '.txt')
+        files.append(Constants.PROCESSED_DIR + dir_name + '/' + name + '.txt')
     
     my_file = open(files[1], 'w+')
     lines = []
@@ -137,8 +192,5 @@ def readFromSynthesizedData(dir_name):
             my_file.write(line)
             lines.append(line)
     my_file.close()
-    
-    #father_trips, child_trips = loadODMergeTrips(files[1], trip_meta)
-    #runHeuristics(father_trips, child_trips)
-
-
+'''
+   
