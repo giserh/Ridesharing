@@ -209,29 +209,27 @@ def greedyMaxFather(father_trips, child_trips, option, capacity):
     benefit = 0
     merged_trips = {}
        
-    while True:
-        if father_trips:
-            heap = []
-            if option == 'random':
-                selected = father_trips.keys()[random.randint(0, len(father_trips.keys()) - 1)]
-                #selected=father_trips.keys()[-1]
-            else:
-                if option == 'benefit' or option == 'edge_benefit':
-                    for k, v in father_trips.iteritems():
-                        benefit_sum = 0
-                        for i in range(0, min(capacity, len(v['children']))):
-                            benefit_sum += v[v['children'][i]]
-                        heap.append((-benefit_sum, k))
-                elif option == 'children_no':
-                    for k, v in father_trips.iteritems():
-                        heap.append((-len(v['children']), k))
-                elif option == 'avg_benefit':
-                    for k, v in father_trips.iteritems():
-                        heap.append((-float(v['benefit']) / len(v['children']), k))
-                heapq.heapify(heap)
-                _, selected = heapq.heappop(heap)
-        else:
-            break
+    while father_trips:      
+		heap = []
+		if option == 'random':
+			selected = father_trips.keys()[random.randint(0, len(father_trips.keys()) - 1)]
+			#selected=father_trips.keys()[-1]
+		else:
+			if option == 'benefit' or option == 'edge_benefit':
+				for k, v in father_trips.iteritems():
+					benefit_sum = 0
+					for i in range(0, min(capacity, len(v['children']))):
+						benefit_sum += v[v['children'][i]]
+					heap.append((-benefit_sum, k))
+			elif option == 'children_no':
+				for k, v in father_trips.iteritems():
+					heap.append((-len(v['children']), k))
+			elif option == 'avg_benefit':
+				for k, v in father_trips.iteritems():
+					heap.append((-float(v['benefit']) / len(v['children']), k))
+			heapq.heapify(heap)
+			_, selected = heapq.heappop(heap)
+     
 
         selected_child_trips = []
         for child in copy.deepcopy(father_trips[selected]['children']):

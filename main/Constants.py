@@ -14,3 +14,4 @@ INF = 9999999
 #Mergeable Relation
 DELTA = 15*60
 PACE = 1.3
+
