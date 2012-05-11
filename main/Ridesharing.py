@@ -229,8 +229,8 @@ def greedyMaxFather(father_trips, child_trips, option, capacity):
 					heap.append((-float(v['benefit']) / len(v['children']), k))
 			heapq.heapify(heap)
 			_, selected = heapq.heappop(heap)
-     
-
+        
+        
         selected_child_trips = []
         for child in copy.deepcopy(father_trips[selected]['children']):
             if len(selected_child_trips) == capacity:

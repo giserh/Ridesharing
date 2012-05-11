@@ -4,10 +4,10 @@ Created on Apr 23, 2012
 @author: Sol
 '''
 #directory configuration
-BASE_DIR = 'C:/Program Files/Weka-3-6/data/Taxi_Trajectory/'
+BASE_DIR = 'C:/Users/v-shuoma/Desktop/workspace/data/'
 RAW_DIR = BASE_DIR + 'raw/'
 PROCESSED_DIR = BASE_DIR + 'processed/'
-SAVEDIR='E:\\Research\\MobileComputing\\RideSharing\\experiment_result\\'
+SAVEDIR='C:/Users/v-shuoma/Desktop/workspace/data/results/'
 
 INF = 9999999
 
