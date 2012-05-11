@@ -199,6 +199,7 @@ def loadMergableRelation(dir_name, file_name, maximum_delay, graphViz=False):
     
     return father_trips, child_trips, mergeable_relation, trip_meta
 
+"""
 def greedyMaxFather(father_trips, child_trips, option, capacity):
     '''    e.g. given (1,3), (2,3)
     father_trips={3:{1:5, 2:5, 'benefit':10, 'children':[1,2]}, }
@@ -230,7 +231,6 @@ def greedyMaxFather(father_trips, child_trips, option, capacity):
 			heapq.heapify(heap)
 			_, selected = heapq.heappop(heap)
         
-        
         selected_child_trips = []
         for child in copy.deepcopy(father_trips[selected]['children']):
             if len(selected_child_trips) == capacity:
@@ -261,7 +261,9 @@ def greedyMaxFather(father_trips, child_trips, option, capacity):
                     del father_trips[t_id] 
 
     return benefit, merged_trips
+"""
 
+"""
 def bounded_capacity(dir_name, capacity_array=[1, 2, 3, 4, 5, Constants.INF], delay=Constants.INF):
     heuristics = ['upper_bound', 'optimal_filter', 'benefit', 'avg_benefit', 'children_no', 'random', ]#, 'edge_benefit']
     criteria = ['saved_driving_distance']#,'no_of_saved_trips','avg_delay','max_merge', 'avg_merge', 'max_delay']
@@ -300,13 +302,15 @@ def bounded_capacity(dir_name, capacity_array=[1, 2, 3, 4, 5, Constants.INF], de
     scatter.draw_variant_capacity(data, heuristics, capacity_array, criteria, criteria_unit, dir_name)
     
     '''
-    """format results"""        
+    '''format results'''        
     print '%-s%s' % ('\t', '\t\t'.join(criteria))
     for heur in heuristics:
         print '%-s\t' % heur, '\t\t'.join([','.join([ str(item) for item in res[crit][heur] ]) for crit in criteria])
     print
     '''
+"""
 
+"""
 def bounded_delay(dir_name, upper_bound, DELAY=[900, 1800, 2700, 3600, Constants.INF]):
     #'''
     criteria = ['saved_driving_distance', 'no_of_saved_trips', 'avg_delay', 'max_merge', 'avg_merge', 'max_delay']
@@ -343,10 +347,11 @@ def bounded_delay(dir_name, upper_bound, DELAY=[900, 1800, 2700, 3600, Constants
                     data[j].append(upper_bound[i])
     scatter.draw_variant_delay(data, heuristics, DELAY, criteria, criteria_unit, dir_name)
     #'''
+"""
 
 def ridesharing(dir_name):
-    #read.processRawData(dir_name)
-    DELAY = [900, 1800, 2700, 3600, Constants.INF]
+    read.processRawData(dir_name)
+    #DELAY = [900, 1800, 2700, 3600, Constants.INF]
     #upper_bound=produceMergableRelation(dir_name, DELAY, True)
     # unbounded capacity, bounded delay
     #bounded_delay(dir_name, upper_bound, DELAY[:-1])
@@ -377,5 +382,4 @@ def ridesharing(dir_name):
     """
 
 if __name__ == "__main__":
-    #ridesharing('Taxi_Shanghai')
-    ridesharing('small_test')
+    ridesharing('Taxi_Shanghai')

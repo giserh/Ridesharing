@@ -41,6 +41,7 @@ def is_valid_trip(trip_file_name, debug=False):
     return True
 
 def extract_trip_from_one_file(file_name, trip_dir, trip_meta):
+    #print file_name
     f = open(file_name)
     # Using a DictReader instead
     r = csv.DictReader(f, ['taxi_id', 'timestamp', 'lng', 'lat', 'unknown1', 'unknown2', 'occupied'])
@@ -103,7 +104,7 @@ def extract_trip_from_one_file(file_name, trip_dir, trip_meta):
     return trips, max_lat, min_lat, max_lng, min_lng
 
 def generate_trip_meta(all_trip_meta_file_name, trip_meta_file_name, non_valid_trip_file_name, trip_dir):
-    """generate the trip meta file"""
+    """Given the all_trip_meta_file, generate the trip meta file by using the filter algorithm"""
     start=time.time()
     
     trip_meta_file=open(trip_meta_file_name, 'w+')
@@ -147,23 +148,28 @@ def processRawData(dir_name, trip_dir, all_trip_meta_file_name):
     _min_lng = 180
 
     extract_trip_from_one_file.count = 1
-    non_valid_trip_list=[]
     
-    for f in glob.glob(Constants.RAW_DIR + '/*'):
-        ts, max_lat, min_lat, max_lng, min_lng, non_valid = extract_trip_from_one_file(f, trip_dir, all_trip_meta_file_name)
+    for f in glob.glob(Constants.RAW_DIR +dir_name+ '/*'):
+        ts, max_lat, min_lat, max_lng, min_lng = extract_trip_from_one_file(f, trip_dir, all_trip_meta_file_name)
         _max_lat = max(max_lat, _max_lat)
         _min_lat = min(min_lat, _min_lat)
         _max_lng = max(max_lng, _max_lng)
         _min_lng = min(min_lng, _min_lng)
-        trips.extend(ts)
-        non_valid_trip_list.append(non_valid)
+        trips.extend(ts)  
     
     elapsed = int((time.time() - start)/60)
     print "%d minutes elapsed\n"%elapsed 
     return trips, _max_lat, _min_lat, _max_lng, _min_lng
 
-#trip_dir, files=build_file_names('Taxi_Shanghai')
-#generate_trip_meta(files[0], files[1], files[2], trip_dir)
+
+dir_name="Taxi_Shanghai"
+trip_dir, files=build_file_names(dir_name)
+
+#generate the all_trip_meta_file
+#processRawData(dir_name,trip_dir,files[0])
+
+#generate trip_meta_file, i.e. filtering out invalid trips
+generate_trip_meta(files[0], files[1], files[2], trip_dir)
 #is_valid_trip("C:/Program Files/Weka-3-6/data/Taxi_Trajectory/processed/Taxi_Shanghai/trip_trajectory/499.txt", True)
 
 '''
