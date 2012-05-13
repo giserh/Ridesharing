@@ -80,7 +80,7 @@ def draw_variant_capacity(data, heuristics, capacity, criteria, criteria_unit, d
         ax.legend(heuristics, loc='best',numpoints=1, markerscale=1.3)
         plt.savefig(Constants.SAVEDIR+str(idx)+'_'+dirname)
     #plt.show()
-
+    
 def draw_variant_delay(data, heuristics, delay, criteria, criteria_unit, dirname): 
     for l in range(len(data)):
         data[l]=[int(dis/1000) for dis in data[l]]
@@ -121,12 +121,27 @@ def draw_variant_delay(data, heuristics, delay, criteria, criteria_unit, dirname
     #ax.yaxis.set_major_formatter(formatter)
 
     for j in range(len(heuristics)):
-        ax.plot(x_axis, data[j], color=COLORS[j],  marker=MARKERS[j], markersize=10, markeredgecolor=COLORS[j], linestyle='-', linewidth=2, label=heuristics[j])
+        ax.plot(x_axis, data[j], color=COLORS[j],  marker=MARKERS[j], markersize=5, markeredgecolor=COLORS[j], linestyle='-', linewidth=2, label=heuristics[j])
     
     ax.legend(heuristics, loc='best',numpoints=1, markerscale=1.3)
     plt.savefig(Constants.SAVEDIR+str(idx)+'_delay_'+dirname)
     #plt.show()
+    
 
-  
+criteria = ['saved_driving_distance', 'no_of_saved_trips', 'avg_delay', 'max_merge', 'avg_merge', 'max_delay']
+criteria_unit = ['km', '', 'sec', '', '', 'sec']
+heuristics = ['upper_bound', 'optimal_filter', 'benefit', 'avg_benefit', 'children_no', 'random']
+DELAY=[300,600,1200,1500]
+data = []
+
+dir_name="Taxi_Shanghai"
+df=open(Constants.PROCESSED_DIR+dir_name+"/bounded_delay.txt", "r")
+for line in df.readlines():
+    data.append([float(f) for f in line.split(",")])
+    #print data[-1]
+
+draw_variant_delay(data, heuristics, DELAY, criteria, criteria_unit, dir_name)
+
+
     
 
