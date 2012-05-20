@@ -82,9 +82,6 @@ def draw_variant_capacity(data, heuristics, capacity, criteria, criteria_unit, d
     #plt.show()
     
 def draw_variant_delay(data, heuristics, delay, criteria, criteria_unit, dirname): 
-    for l in range(len(data)):
-        data[l]=[int(dis/1000) for dis in data[l]]
-    
     x_tick_names=[]
     for d in delay:
         if d<Constants.INF:
