@@ -95,19 +95,20 @@ def draw_variant_delay(data, heuristics, delay, criteria, criteria_unit, dirname
     ax = fig.add_subplot(111)
     ax.grid(True)
     
-    ax.set_title(criteria[0])
+    ax.set_title(criteria)
     ax.set_xlabel('Delay Threshold (minutes)')
-    idx=0
-    y_label=criteria[idx]
-    if criteria_unit[idx]:
-        y_label+='('+criteria_unit[idx]+')'
+    y_label=criteria
+
+    if criteria_unit:
+        y_label+='('+criteria_unit+')'
     ax.set_ylabel(y_label)
     
+    """
     max_value=max(max(line) for line in data)
     min_value=min(min(line) for line in data)
     upper_offset=lower_offset=int((max_value-min_value)*0.05)+1
-       
     ax.axis([0,len(x_axis)+1,min_value-lower_offset,max_value+upper_offset])
+    """
     
     ###################################
     #pylab.xticks(x_axis, x_tick_names)
@@ -121,23 +122,24 @@ def draw_variant_delay(data, heuristics, delay, criteria, criteria_unit, dirname
         ax.plot(x_axis, data[j], color=COLORS[j],  marker=MARKERS[j], markersize=5, markeredgecolor=COLORS[j], linestyle='-', linewidth=2, label=heuristics[j])
     
     ax.legend(heuristics, loc='best',numpoints=1, markerscale=1.3)
-    plt.savefig(Constants.SAVEDIR+str(idx)+'_delay_'+dirname)
+    plt.savefig(Constants.SAVEDIR+'bounded_delay_'+"_".join([str(d) for d in delay])+'_'+criteria)
     #plt.show()
     
 
-criteria = ['saved_driving_distance', 'no_of_saved_trips', 'avg_delay', 'max_merge', 'avg_merge', 'max_delay']
-criteria_unit = ['km', '', 'sec', '', '', 'sec']
+criteria_unit={'saved_driving_distance':'km','percentage_of_saved_distance':'','no_of_saved_trips':''}
 heuristics = ['upper_bound', 'optimal_filter', 'benefit', 'avg_benefit', 'children_no', 'random']
-DELAY=[300,600,1200,1500]
+DELAY=[300,600,900,1200]
 data = []
 
 dir_name="Taxi_Shanghai"
+#criteria = 'saved_driving_distance' 
+criteria='percentage_of_saved_distance' # 'no_of_saved_trips', 'avg_delay', 'max_merge', 'avg_merge', 'max_delay']
 df=open(Constants.PROCESSED_DIR+dir_name+"/bounded_delay.txt", "r")
 for line in df.readlines():
     data.append([float(f) for f in line.split(",")])
     #print data[-1]
 
-draw_variant_delay(data, heuristics, DELAY, criteria, criteria_unit, dir_name)
+draw_variant_delay(data, heuristics, DELAY, criteria, criteria_unit[criteria], dir_name)
 
 
     
