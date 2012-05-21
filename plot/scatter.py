@@ -81,7 +81,7 @@ def draw_variant_capacity(data, heuristics, capacity, criteria, criteria_unit, d
         plt.savefig(Constants.SAVEDIR+str(idx)+'_'+dirname)
     #plt.show()
     
-def draw_variant_delay(data, heuristics, delay, criteria, criteria_unit, dirname): 
+def draw_variant_delay(data, heuristics, delay, criteria, criteria_unit, save_file_name): 
     x_tick_names=[]
     for d in delay:
         if d<Constants.INF:
@@ -122,7 +122,7 @@ def draw_variant_delay(data, heuristics, delay, criteria, criteria_unit, dirname
         ax.plot(x_axis, data[j], color=COLORS[j],  marker=MARKERS[j], markersize=5, markeredgecolor=COLORS[j], linestyle='-', linewidth=2, label=heuristics[j])
     
     ax.legend(heuristics, loc='best',numpoints=1, markerscale=1.3)
-    plt.savefig(Constants.SAVEDIR+'bounded_delay_'+"_".join([str(d) for d in delay])+'_'+criteria)
+    plt.savefig(Constants.SAVEDIR+save_file_name)
     #plt.show()
     
 
@@ -131,15 +131,17 @@ heuristics = ['upper_bound', 'optimal_filter', 'benefit', 'avg_benefit', 'childr
 DELAY=[300,600,900,1200]
 data = []
 
-dir_name="Taxi_Shanghai"
+dir_name="2011-4-23"
 #criteria = 'saved_driving_distance' 
 criteria='percentage_of_saved_distance' # 'no_of_saved_trips', 'avg_delay', 'max_merge', 'avg_merge', 'max_delay']
-df=open(Constants.PROCESSED_DIR+dir_name+"/bounded_delay.txt", "r")
+save_file_name=dir_name+"_"+"_".join([str(d) for d in DELAY])+"_"+criteria
+df=open(Constants.PROCESSED_DIR+dir_name+"/"+save_file_name+".txt", "r")
 for line in df.readlines():
     data.append([float(f) for f in line.split(",")])
     #print data[-1]
+print len(data)
 
-draw_variant_delay(data, heuristics, DELAY, criteria, criteria_unit[criteria], dir_name)
+draw_variant_delay(data, heuristics, DELAY, criteria, criteria_unit[criteria], save_file_name)
 
 
     
