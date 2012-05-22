@@ -161,16 +161,14 @@ def processRawData(dir_name, trip_dir, all_trip_meta_file_name):
     print "%d minutes elapsed\n"%elapsed 
     return trips, _max_lat, _min_lat, _max_lng, _min_lng
 
-
-dir_name="2011-4-17"
-trip_dir, files=build_file_names(dir_name)
+trip_dir, files=build_file_names(Constants.DATE)
 #print trip_dir, "\t".join(files)
 
 #generate the all_trip_meta_file
-processRawData(dir_name,trip_dir,files[0])
+#processRawData(dir_name,trip_dir,files[0])
 
 #generate trip_meta_file, i.e. filtering out invalid trips
-#generate_trip_meta(files[0], files[1], files[2], trip_dir)
+generate_trip_meta(files[0], files[1], files[2], trip_dir)
 #is_valid_trip("C:/Program Files/Weka-3-6/data/Taxi_Trajectory/processed/Taxi_Shanghai/trip_trajectory/499.txt", True)
 
 '''
