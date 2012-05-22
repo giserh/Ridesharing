@@ -44,7 +44,7 @@ def extract_trip_from_one_file(file_name, trip_dir, trip_meta):
     #print file_name
     f = open(file_name)
     # Using a DictReader instead
-    r = csv.DictReader(f, ['taxi_id', 'timestamp', 'lat', 'lon', 'unknown1', 'unknown2', 'occupied'])
+    r = csv.DictReader(f, ['taxi_id', 'timestamp', 'lat', 'lng', 'unknown1', 'unknown2', 'occupied'])
     trips = []
     max_lat = 0.0
     min_lat = 180
@@ -165,7 +165,7 @@ trip_dir, files=build_file_names(Constants.DATE)
 #print trip_dir, "\t".join(files)
 
 #generate the all_trip_meta_file
-#processRawData(dir_name,trip_dir,files[0])
+#processRawData(Constants.DATE,trip_dir,files[0])
 
 #generate trip_meta_file, i.e. filtering out invalid trips
 generate_trip_meta(files[0], files[1], files[2], trip_dir)
