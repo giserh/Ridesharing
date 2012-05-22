@@ -44,7 +44,7 @@ def extract_trip_from_one_file(file_name, trip_dir, trip_meta):
     #print file_name
     f = open(file_name)
     # Using a DictReader instead
-    r = csv.DictReader(f, ['taxi_id', 'timestamp', 'lng', 'lat', 'unknown1', 'unknown2', 'occupied'])
+    r = csv.DictReader(f, ['taxi_id', 'timestamp', 'lat', 'lon', 'unknown1', 'unknown2', 'occupied'])
     trips = []
     max_lat = 0.0
     min_lat = 180
