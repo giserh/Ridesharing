@@ -131,7 +131,7 @@ heuristics = ['upper_bound', 'optimal_filter', 'benefit', 'avg_benefit', 'childr
 DELAY=[300,600,900,1200]
 data = []
 
-dir_name="2011-4-23"
+dir_name=Constants.DATE
 #criteria = 'saved_driving_distance' 
 criteria='percentage_of_saved_distance' # 'no_of_saved_trips', 'avg_delay', 'max_merge', 'avg_merge', 'max_delay']
 save_file_name=dir_name+"_"+"_".join([str(d) for d in DELAY])+"_"+criteria
