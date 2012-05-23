@@ -128,7 +128,7 @@ def draw_variant_delay(data, heuristics, delay, criteria, criteria_unit, save_fi
 
 criteria_unit={'saved_driving_distance':'km','percentage_of_saved_distance':'','no_of_saved_trips':''}
 heuristics = ['upper_bound', 'optimal_filter', 'benefit', 'avg_benefit', 'children_no', 'random']
-DELAY=[300,600,900,1200, 1500, 1800]
+DELAY=[300,600,900,1200]
 data = []
 
 dir_name=Constants.DATE

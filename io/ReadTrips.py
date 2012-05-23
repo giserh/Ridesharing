@@ -67,7 +67,7 @@ def extract_trip_from_one_file(file_name, trip_dir, trip_meta):
             minute = int(time.strftime("%M", time.strptime("{timestamp}".format(**line), "%Y-%m-%d %H:%M:%S")))
             sec = int(time.strftime("%S", time.strptime("{timestamp}".format(**line), "%Y-%m-%d %H:%M:%S")))
             sec_of_day = hour_of_day * 3600 + minute * 60 + sec
-            trip.append(("{taxi_id}".format(**line), float("{lng}".format(**line)), float("{lat}".format(**line)), day_of_week, hour_of_day, sec_of_day))
+            trip.append(("{taxi_id}".format(**line), float("{lat}".format(**line)), float("{lng}".format(**line)), day_of_week, hour_of_day, sec_of_day))
             lat.append(float("{lat}".format(**line)))
             lng.append(float("{lng}".format(**line)))
             timestamp.append(sec_of_day)
@@ -165,11 +165,11 @@ trip_dir, files=build_file_names(Constants.DATE)
 #print trip_dir, "\t".join(files)
 
 #generate the all_trip_meta_file
-#processRawData(Constants.DATE,trip_dir,files[0])
+processRawData(Constants.DATE,trip_dir,files[0])
 
 #generate trip_meta_file, i.e. filtering out invalid trips
 generate_trip_meta(files[0], files[1], files[2], trip_dir)
-#is_valid_trip("C:/Program Files/Weka-3-6/data/Taxi_Trajectory/processed/Taxi_Shanghai/trip_trajectory/499.txt", True)
+#is_valid_trip(Constants.PROCESSED_DIR+Constants.DATE+"/trip_trajectory/2.txt", True)
 
 '''
 def readFromSynthesizedData(dir_name):
